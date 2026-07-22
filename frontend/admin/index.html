@@ -2,261 +2,233 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Smart Delivery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Smart Delivery</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="app">
-
-    <!-- BANNER -->
-    <div class="banner-container" id="banner-container">
-        <div class="banner-placeholder" id="banner-placeholder">🍽️ Smart Delivery</div>
-    </div>
-
-    <!-- LOGO -->
-    <div class="logo-wrapper">
-        <div class="logo-container">
-            <div class="logo-placeholder" id="logo-placeholder">SD</div>
+    <div class="header">
+        <h1>⚙️ Painel Administrativo</h1>
+        <div class="user-info">
+            <span>👤 Proprietário</span>
+            <a href="/" target="_blank">🔗 Ver Loja</a>
+            <a href="#" onclick="logout()">🚪 Sair</a>
         </div>
     </div>
 
-    <!-- NOME E STATUS -->
-    <div class="store-header">
-        <h1 id="store-name">Smart Delivery</h1>
-        <div class="status">
-            <span id="store-status">🟢 Aberto</span>
-            <span id="store-hours"> • 09:00 – 22:00</span>
-        </div>
+    <div class="admin-tabs">
+        <button class="active" data-tab="tab-products">📦 Produtos</button>
+        <button data-tab="tab-categories">🏷️ Categorias</button>
+        <button data-tab="tab-config">⚙️ Configurações</button>
+        <button data-tab="tab-orders">📦 Pedidos</button>
+        <button data-tab="tab-dashboard">📊 Dashboard</button>
     </div>
 
-    <!-- ENDEREÇO DA LOJA -->
-    <div class="store-address-bar">
-        <span class="address-text" id="store-address">📍 Carregando endereço...</span>
+    <!-- Produtos -->
+    <div id="tab-products" class="admin-page active">
+        <div class="flex-between" style="margin-bottom:16px;">
+            <h2>Gerenciar Produtos</h2>
+            <button class="btn" onclick="openProductModal()">+ Adicionar Produto</button>
+        </div>
+        <div id="admin-product-list"></div>
     </div>
 
-    <!-- CATEGORIAS TABS -->
-    <div class="category-tabs" id="category-tabs"></div>
-
-    <!-- PÁGINA HOME -->
-    <div id="page-home" class="page active">
-        <div class="products-container" id="products-container"></div>
+    <!-- Categorias -->
+    <div id="tab-categories" class="admin-page">
+        <div class="flex-between" style="margin-bottom:16px;">
+            <h2>Gerenciar Categorias</h2>
+            <button class="btn btn-primary" onclick="openCategoryModal()">+ Nova Categoria</button>
+        </div>
+        <div class="card" style="background:#fff8f0;border:1px solid #fdebd0;">
+            <p style="color:#e67e22;font-size:14px;">💡 As categorias organizam os produtos no cardápio.</p>
+        </div>
+        <div id="admin-category-list"></div>
     </div>
 
-    <!-- PÁGINA CART -->
-    <div id="page-cart" class="page">
-        <div class="page-header">
-            <h2>🛒 Sacola</h2>
-            <button class="btn btn-sm btn-secondary" onclick="clearCart()">Limpar</button>
-        </div>
-        <div id="cart-items"></div>
-        <div id="cart-empty" class="empty-state">
-            <div class="big-icon">🛒</div>
-            <p>Sua sacola está vazia</p>
-        </div>
-        <div id="cart-summary" style="display:none;">
-            <div class="card">
-                <div class="flex-between"><span>Subtotal</span> <span id="cart-subtotal">R$ 0,00</span></div>
-                <div class="flex-between"><span>Taxa de entrega</span> <span id="cart-delivery-fee">R$ 0,00</span></div>
-                <div class="flex-between" style="font-weight:700;font-size:18px;margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
-                    <span>Total</span> <span id="cart-total">R$ 0,00</span>
-                </div>
-                <div style="margin-top:12px;">
-                    <input type="text" id="coupon-input" placeholder="Cupom de desconto" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:30px;margin-bottom:8px;">
-                    <button class="btn btn-sm btn-secondary" onclick="applyCoupon()">Aplicar cupom</button>
-                </div>
-                <button class="btn" onclick="goToCheckout()" style="margin-top:12px;">Continuar pedido →</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA ORDERS -->
-    <div id="page-orders" class="page">
-        <div class="page-header">
-            <h2>📋 Histórico</h2>
-        </div>
-        <div id="orders-list"></div>
-        <div id="orders-empty" class="empty-state">
-            <div class="big-icon">📭</div>
-            <p>Você ainda não possui pedidos</p>
-        </div>
-    </div>
-
-    <!-- PÁGINA PROFILE -->
-    <div id="page-profile" class="page">
-        <div class="page-header">
-            <h2>👤 Minha Conta</h2>
-        </div>
-        <div class="card" style="text-align:center;margin-top:16px;">
-            <div class="profile-avatar" id="user-avatar">U</div>
-            <div class="profile-name" id="user-name-display">Usuário</div>
-            <div class="profile-email" id="user-email-display">usuario@email.com</div>
-        </div>
+    <!-- Configurações -->
+    <div id="tab-config" class="admin-page">
+        <h2>Configurações da Loja</h2>
         <div class="card">
-            <div class="profile-field">
-                <span class="label">👤 Nome</span>
-                <span class="value" id="user-name-value">Usuário</span>
-                <button class="edit-btn" onclick="editUserField('name')">Editar</button>
+            <div class="config-row">
+                <label>Nome da loja</label>
+                <input type="text" id="config-store-name" value="">
             </div>
-            <div class="profile-field">
-                <span class="label">📧 E-mail</span>
-                <span class="value" id="user-email-value">usuario@email.com</span>
-                <button class="edit-btn" onclick="editUserField('email')">Editar</button>
+            <div class="config-row">
+                <label>Telefone (WhatsApp)</label>
+                <input type="text" id="config-phone" value="">
             </div>
-            <div class="profile-field">
-                <span class="label">📱 Telefone</span>
-                <span class="value" id="user-phone-value">(85) 99999-9999</span>
-                <button class="edit-btn" onclick="editUserField('phone')">Editar</button>
+            <div class="config-row">
+                <label>Taxa de entrega (R$)</label>
+                <input type="number" id="config-delivery-fee" value="3.00" step="0.01">
             </div>
-            <div class="profile-field">
-                <span class="label">📍 Endereço</span>
-                <span class="value" id="user-address-value">Não cadastrado</span>
-                <button class="edit-btn" onclick="openAddressModal()">Editar</button>
+            <div class="config-row">
+                <label>Horário de funcionamento</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input type="time" id="config-open" value="09:00">
+                    <span>às</span>
+                    <input type="time" id="config-close" value="22:00">
+                </div>
+            </div>
+            <div class="config-row">
+                <label>Status da loja</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="config-status" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+                <span id="config-status-label">Aberto</span>
             </div>
         </div>
+
         <div class="card">
-            <button class="btn btn-danger" onclick="clearUserData()">🗑️ Resetar dados</button>
-        </div>
-    </div>
-
-    <!-- PÁGINA CHECKOUT -->
-    <div id="page-checkout" class="page">
-        <div class="page-header">
-            <h2>Checkout</h2>
-            <button class="btn btn-sm btn-secondary" onclick="switchPage('cart')">Voltar</button>
-        </div>
-        <div class="step-indicator">
-            <div class="step active" id="step-1"><div class="circle">1</div><span class="step-label">Entrega</span></div>
-            <div class="step" id="step-2"><div class="circle">2</div><span class="step-label">Pagamento</span></div>
-            <div class="step" id="step-3"><div class="circle">3</div><span class="step-label">Conclusão</span></div>
-        </div>
-        <div class="checkout-step-content">
-            <div id="checkout-step-1">
-                <div class="card">
-                    <div class="card-title">📌 Receber no seu endereço</div>
-                    <div class="card-sub" id="checkout-address">Carregando...</div>
-                    <div class="flex-between" style="margin-top:8px;">
-                        <span>Taxa de entrega</span> <span id="checkout-fee-display">R$ 0,00</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">📦 Retirar na loja</div>
-                    <div class="card-sub" id="store-pickup-address">Carregando...</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">🕒 Quando deseja receber?</div>
-                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-                        <button class="btn btn-sm btn-secondary" onclick="setDeliveryNow()">Pedir agora (60-75min)</button>
-                        <button class="btn btn-sm btn-secondary" onclick="setDeliverySchedule()">Agendar</button>
-                    </div>
-                    <div id="schedule-info" style="margin-top:8px;font-size:14px;color:#888;"></div>
-                </div>
-                <button class="btn" onclick="nextCheckoutStep(2)">Continuar →</button>
-            </div>
-            <div id="checkout-step-2" style="display:none;">
-                <div class="card">
-                    <div class="card-title">💳 Pagamento na entrega</div>
-                    <div class="chip-group" id="payment-methods">
-                        <span class="chip" data-method="Dinheiro">💰 Dinheiro</span>
-                        <span class="chip" data-method="Pix/Transferência">📲 Pix / Transferência</span>
-                        <span class="chip" data-method="Crédito">💳 Crédito</span>
-                        <span class="chip" data-method="Débito">💳 Débito</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="flex-between"><span>Subtotal</span> <span id="checkout-subtotal">R$ 0,00</span></div>
-                    <div class="flex-between"><span>Taxa de entrega</span> <span id="checkout-delivery-fee">R$ 0,00</span></div>
-                    <div class="flex-between" style="font-weight:700;font-size:18px;border-top:1px solid #eee;padding-top:8px;">
-                        <span>Total</span> <span id="checkout-total">R$ 0,00</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="nextCheckoutStep(3)">Continuar →</button>
-            </div>
-            <div id="checkout-step-3" style="display:none;">
-                <div class="card">
-                    <div class="card-title">📋 Resumo do pedido</div>
-                    <div id="order-summary-items"></div>
-                    <div class="divider"></div>
-                    <div><strong>Endereço:</strong> <span id="order-summary-address"></span></div>
-                    <div><strong>Pagamento:</strong> <span id="order-summary-payment"></span></div>
-                    <div><strong>Entrega:</strong> <span id="order-summary-schedule"></span></div>
-                    <div class="divider"></div>
-                    <div class="flex-between"><span>Subtotal</span> <span id="order-summary-subtotal">R$ 0,00</span></div>
-                    <div class="flex-between"><span>Taxa</span> <span id="order-summary-fee">R$ 0,00</span></div>
-                    <div class="flex-between" style="font-weight:700;font-size:20px;border-top:1px solid #eee;padding-top:8px;">
-                        <span>Total</span> <span id="order-summary-total">R$ 0,00</span>
-                    </div>
-                    <button class="btn btn-success" onclick="submitOrder()" style="margin-top:16px;">✅ Enviar pedido</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL ENDEREÇO -->
-    <div class="modal-overlay" id="address-modal">
-        <div class="modal-box modal-address">
-            <h3>📍 Editar Endereço</h3>
-            <div class="address-form">
-                <div class="form-group full-width">
+            <h3 style="margin-bottom:12px;">📍 Endereço da Loja</h3>
+            <div class="address-grid">
+                <div class="full-width">
                     <label>CEP</label>
-                    <input type="text" id="user-cep" placeholder="00000-000" maxlength="9" oninput="formatCep(this)" onblur="buscarCep(this.value, 'user')">
-                    <div class="cep-loading" id="user-cep-loading">🔍 Buscando endereço...</div>
+                    <input type="text" id="config-cep" placeholder="00000-000" maxlength="9" oninput="formatCep(this)" onblur="buscarCepAdmin(this.value)">
+                    <div class="cep-loading" id="admin-cep-loading">🔍 Buscando endereço...</div>
                 </div>
-                <div class="form-group full-width">
+                <div class="full-width">
                     <label>Rua</label>
-                    <input type="text" id="user-street" placeholder="Rua" disabled>
+                    <input type="text" id="config-street" placeholder="Rua" disabled>
                 </div>
-                <div class="form-group">
+                <div>
                     <label>Número</label>
-                    <input type="text" id="user-number" placeholder="Número">
+                    <input type="text" id="config-number" placeholder="Número">
                 </div>
-                <div class="form-group">
+                <div>
                     <label>Complemento</label>
-                    <input type="text" id="user-complement" placeholder="Complemento">
+                    <input type="text" id="config-complement" placeholder="Complemento">
                 </div>
-                <div class="form-group full-width">
+                <div class="full-width">
                     <label>Bairro</label>
-                    <input type="text" id="user-neighborhood" placeholder="Bairro" disabled>
+                    <input type="text" id="config-neighborhood" placeholder="Bairro" disabled>
                 </div>
-                <div class="form-group">
+                <div>
                     <label>Cidade</label>
-                    <input type="text" id="user-city" placeholder="Cidade" disabled>
+                    <input type="text" id="config-city" placeholder="Cidade" disabled>
                 </div>
-                <div class="form-group">
+                <div>
                     <label>Estado</label>
-                    <input type="text" id="user-state" placeholder="UF" disabled>
+                    <input type="text" id="config-state" placeholder="UF" disabled>
                 </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:12px;">🖼️ Imagens da Loja</h3>
+            <div class="config-row">
+                <label>Banner (topo)</label>
+                <div class="image-upload-group">
+                    <input type="file" id="banner-upload" accept="image/*" onchange="previewImage(this, 'banner-preview')">
+                    <div class="preview-container">
+                        <img id="banner-preview" style="display:none;" alt="Banner">
+                        <div class="placeholder" id="banner-placeholder">Sem banner</div>
+                        <button class="btn btn-sm btn-danger" onclick="clearImage('banner')">Remover</button>
+                    </div>
+                </div>
+            </div>
+            <div class="config-row">
+                <label>Logo (redonda)</label>
+                <div class="image-upload-group">
+                    <input type="file" id="logo-upload" accept="image/*" onchange="previewImage(this, 'logo-preview')">
+                    <div class="preview-container">
+                        <img id="logo-preview" style="display:none;" alt="Logo">
+                        <div class="placeholder" id="logo-placeholder">Sem logo</div>
+                        <button class="btn btn-sm btn-danger" onclick="clearImage('logo')">Remover</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="saveConfig()">💾 Salvar Configurações</button>
+    </div>
+
+    <!-- Pedidos -->
+    <div id="tab-orders" class="admin-page">
+        <h2>Pedidos Recebidos</h2>
+        <div id="admin-orders-list"></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="tab-dashboard" class="admin-page">
+        <h2>📊 Dashboard</h2>
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="number" id="dash-total-orders">0</div>
+                <div class="label">Total de Pedidos</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="number" id="dash-today-revenue">R$ 0,00</div>
+                <div class="label">Faturamento Hoje</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="number" id="dash-avg-ticket">R$ 0,00</div>
+                <div class="label">Ticket Médio</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="number" id="dash-pending-orders">0</div>
+                <div class="label">Pedidos Pendentes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-box">
+            <h3 id="product-modal-title">Adicionar Produto</h3>
+            <div class="form-group">
+                <label>Nome do produto *</label>
+                <input type="text" id="prod-name" placeholder="Ex: Frango grande">
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <input type="text" id="prod-desc" placeholder="Breve descrição">
+            </div>
+            <div class="form-group">
+                <label>Preço (R$) *</label>
+                <input type="number" id="prod-price" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label>Categoria *</label>
+                <select id="prod-category"></select>
+                <div style="margin-top:6px;">
+                    <button class="btn btn-sm btn-secondary" onclick="openCategoryModalFromProduct()" style="width:auto;">➕ Criar nova categoria</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Disponível</label>
+                <select id="prod-active">
+                    <option value="1">Sim</option>
+                    <option value="0">Não</option>
+                </select>
             </div>
             <div class="form-actions">
-                <button class="btn btn-secondary" onclick="closeAddressModal()">Cancelar</button>
-                <button class="btn" onclick="saveUserAddress()">Salvar</button>
+                <button class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                <button class="btn" id="product-save-btn" onclick="saveProduct()">Salvar</button>
             </div>
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
-    <div class="bottom-nav" id="bottom-nav">
-        <button class="active" onclick="switchPage('home')">
-            <span class="icon">🏠</span>
-            <span class="label">Início</span>
-        </button>
-        <button onclick="switchPage('cart')">
-            <span class="icon">🛒</span>
-            <span class="label">Sacola</span>
-            <span id="cart-badge-bottom" class="badge" style="display:none;">0</span>
-        </button>
-        <button onclick="switchPage('orders')">
-            <span class="icon">📋</span>
-            <span class="label">Pedidos</span>
-        </button>
-        <button onclick="switchPage('profile')">
-            <span class="icon">👤</span>
-            <span class="label">Conta</span>
-        </button>
+    <div class="modal-overlay" id="category-modal">
+        <div class="modal-box">
+            <h3 id="category-modal-title">Nova Categoria</h3>
+            <div class="form-group">
+                <label>Nome da categoria *</label>
+                <input type="text" id="cat-name" placeholder="Ex: Bebidas, Sobremesas">
+            </div>
+            <div class="form-group">
+                <label>Ordem de exibição</label>
+                <input type="number" id="cat-order" placeholder="1" value="1">
+                <small style="color:#888;font-size:12px;">Menor número aparece primeiro</small>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+                <button class="btn" id="category-save-btn" onclick="saveCategory()">Salvar</button>
+            </div>
+        </div>
     </div>
-
 </div>
-
-<script src="app.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
