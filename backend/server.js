@@ -381,19 +381,31 @@ app.get('/api/config', async (req, res) => {
 app.put('/api/config', async (req, res) => {
     try {
         const updates = req.body;
+        
+        // Salvar as configurações normalmente
         for (const [key, value] of Object.entries(updates)) {
-            const [existing] = await promisePool.query('SELECT id FROM config WHERE config_key = ?', [key]);
-            if (existing.length > 0) {
-                await promisePool.query('UPDATE config SET config_value = ? WHERE config_key = ?', [value, key]);
+            if (key === 'banner_image' || key === 'logo_image') {
+                // URLs das imagens já vêm do Cloudinary
+                await promisePool.query(
+                    'INSERT INTO config (config_key, config_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE config_value = ?',
+                    [key, value, value]
+                );
             } else {
-                await promisePool.query('INSERT INTO config (config_key, config_value) VALUES (?, ?)', [key, value]);
+                await promisePool.query(
+                    'INSERT INTO config (config_key, config_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE config_value = ?',
+                    [key, value, value]
+                );
             }
         }
+        
+        // Buscar configurações atualizadas
         const [rows] = await promisePool.query('SELECT config_key, config_value FROM config');
         const config = {};
         rows.forEach(row => config[row.config_key] = row.config_value);
+        
         res.json({ success: true, data: config });
     } catch (error) {
+        console.error('Erro ao salvar config:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -449,6 +461,69 @@ app.get('/', (req, res) => {
 
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/admin/index.html'));
+});
+
+// ============================================================
+//  CONFIGURAÇÃO CLOUDINARY
+// ============================================================
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Configuração do Multer para upload de arquivos em memória
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    }
+});
+
+// ============================================================
+//  ROTA DE UPLOAD - CLOUDINARY
+// ============================================================
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Nenhuma imagem enviada' });
+        }
+
+        const folder = req.body.folder || 'smart-delivery';
+        const transformation = req.body.type === 'logo' 
+            ? { width: 200, height: 200, crop: 'limit', quality: 'auto' }
+            : { width: 1200, crop: 'limit', quality: 'auto' };
+
+        const result = await cloudinary.uploader.upload(`data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`, {
+            folder: folder,
+            transformation: transformation,
+            format: 'webp'
+        });
+
+        res.json({
+            success: true,
+            url: result.secure_url,
+            public_id: result.public_id
+        });
+    } catch (error) {
+        console.error('Erro no upload:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Rota para deletar imagem do Cloudinary
+app.delete('/api/upload/:public_id', async (req, res) => {
+    try {
+        const { public_id } = req.params;
+        await cloudinary.uploader.destroy(public_id);
+        res.json({ success: true, message: 'Imagem removida' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
 
 // ============================================================

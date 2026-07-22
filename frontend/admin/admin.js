@@ -378,6 +378,31 @@ async function deleteCategory(id) {
 }
 
 // ============================================================
+//  FUNÇÃO DE UPLOAD PARA CLOUDINARY
+// ============================================================
+async function uploadImage(file, type = 'banner') {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', type);
+    formData.append('folder', 'smart-delivery');
+
+    try {
+        const response = await fetch(API_URL + '/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Erro no upload');
+        }
+        return result.url;
+    } catch (error) {
+        console.error('❌ Erro no upload:', error);
+        throw error;
+    }
+}
+
+// ============================================================
 //  CONFIGURAÇÕES
 // ============================================================
 function updateConfigUI() {
@@ -514,6 +539,7 @@ function clearImage(type) {
 
 async function saveConfig() {
     try {
+        // Coletar dados de texto
         const data = {
             store_name: document.getElementById('config-store-name').value.trim(),
             store_phone: document.getElementById('config-phone').value.trim(),
@@ -523,13 +549,14 @@ async function saveConfig() {
             is_open: document.getElementById('config-status').checked ? 'true' : 'false'
         };
 
+        // Endereço
         const street = document.getElementById('config-street').value.trim();
         const number = document.getElementById('config-number').value.trim();
         const complement = document.getElementById('config-complement').value.trim();
         const neighborhood = document.getElementById('config-neighborhood').value.trim();
         const city = document.getElementById('config-city').value.trim();
         const state = document.getElementById('config-state').value.trim();
-
+        
         if (street && number && neighborhood && city && state) {
             let address = street + ', ' + number;
             if (complement) address += ' - ' + complement;
@@ -537,25 +564,72 @@ async function saveConfig() {
             data.store_address = address;
         }
 
-        // Salvar imagens
-        const bannerPreview = document.getElementById('banner-preview');
-        if (bannerPreview.src && bannerPreview.src.startsWith('data:image')) {
-            data.banner_image = bannerPreview.src;
-        }
-        const logoPreview = document.getElementById('logo-preview');
-        if (logoPreview.src && logoPreview.src.startsWith('data:image')) {
-            data.logo_image = logoPreview.src;
+        // Upload de imagens
+        const bannerInput = document.getElementById('banner-upload');
+        if (bannerInput.files && bannerInput.files[0]) {
+            showLoading('Enviando banner...');
+            const url = await uploadImage(bannerInput.files[0], 'banner');
+            data.banner_image = url;
+            // Atualizar preview
+            document.getElementById('banner-preview').src = url;
+            document.getElementById('banner-preview').style.display = 'block';
+            document.getElementById('banner-placeholder').style.display = 'none';
         }
 
-        await apiRequest('/config', {
+        const logoInput = document.getElementById('logo-upload');
+        if (logoInput.files && logoInput.files[0]) {
+            showLoading('Enviando logo...');
+            const url = await uploadImage(logoInput.files[0], 'logo');
+            data.logo_image = url;
+            document.getElementById('logo-preview').src = url;
+            document.getElementById('logo-preview').style.display = 'block';
+            document.getElementById('logo-placeholder').style.display = 'none';
+        }
+
+        // Salvar configurações
+        const result = await apiRequest('/config', {
             method: 'PUT',
             body: JSON.stringify(data)
         });
 
-        await loadData();
-        alert('✅ Configurações salvas com sucesso!');
+        if (result.success) {
+            await loadData();
+            alert('✅ Configurações salvas com sucesso!');
+        }
     } catch (error) {
         alert('❌ Erro ao salvar configurações: ' + error.message);
+    }
+}
+
+function showLoading(message) {
+    // Você pode implementar um indicador de loading
+    console.log('⏳ ' + message);
+}
+
+async function removeImage(type, publicId) {
+    if (!publicId) return;
+    if (!confirm('Remover esta imagem?')) return;
+    
+    try {
+        await apiRequest('/upload/' + publicId, { method: 'DELETE' });
+        // Atualizar a configuração
+        const data = {};
+        if (type === 'banner') {
+            data.banner_image = '';
+            document.getElementById('banner-preview').style.display = 'none';
+            document.getElementById('banner-placeholder').style.display = 'flex';
+        } else {
+            data.logo_image = '';
+            document.getElementById('logo-preview').style.display = 'none';
+            document.getElementById('logo-placeholder').style.display = 'flex';
+        }
+        await apiRequest('/config', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        alert('✅ Imagem removida');
+    } catch (error) {
+        alert('❌ Erro ao remover imagem: ' + error.message);
     }
 }
 
