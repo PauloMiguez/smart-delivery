@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Smart Delivery</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+    <!-- BANNER -->
+    <div class="banner-container" id="banner-container">
+        <div class="banner-placeholder" id="banner-placeholder">🍽️ Smart Delivery</div>
+    </div>
+
+    <!-- LOGO -->
+    <div class="logo-wrapper">
+        <div class="logo-container">
+            <div class="logo-placeholder" id="logo-placeholder">SD</div>
+        </div>
+    </div>
+
+    <!-- NOME E STATUS -->
+    <div class="store-header">
+        <h1 id="store-name">Smart Delivery</h1>
+        <div class="status">
+            <span id="store-status">🟢 Aberto</span>
+            <span id="store-hours"> • 09:00 – 22:00</span>
+        </div>
+    </div>
+
+    <!-- ENDEREÇO DA LOJA -->
+    <div class="store-address-bar">
+        <span class="address-text" id="store-address">📍 Carregando endereço...</span>
+    </div>
+
+    <!-- CATEGORIAS TABS -->
+    <div class="category-tabs" id="category-tabs"></div>
+
+    <!-- PÁGINA HOME -->
+    <div id="page-home" class="page active">
+        <div class="products-container" id="products-container"></div>
+    </div>
+
+    <!-- PÁGINA CART -->
+    <div id="page-cart" class="page">
+        <div class="page-header">
+            <h2>🛒 Sacola</h2>
+            <button class="btn btn-sm btn-secondary" onclick="clearCart()">Limpar</button>
+        </div>
+        <div id="cart-items"></div>
+        <div id="cart-empty" class="empty-state">
+            <div class="big-icon">🛒</div>
+            <p>Sua sacola está vazia</p>
+        </div>
+        <div id="cart-summary" style="display:none;">
+            <div class="card">
+                <div class="flex-between"><span>Subtotal</span> <span id="cart-subtotal">R$ 0,00</span></div>
+                <div class="flex-between"><span>Taxa de entrega</span> <span id="cart-delivery-fee">R$ 0,00</span></div>
+                <div class="flex-between" style="font-weight:700;font-size:18px;margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+                    <span>Total</span> <span id="cart-total">R$ 0,00</span>
+                </div>
+                <div style="margin-top:12px;">
+                    <input type="text" id="coupon-input" placeholder="Cupom de desconto" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:30px;margin-bottom:8px;">
+                    <button class="btn btn-sm btn-secondary" onclick="applyCoupon()">Aplicar cupom</button>
+                </div>
+                <button class="btn" onclick="goToCheckout()" style="margin-top:12px;">Continuar pedido →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PÁGINA ORDERS -->
+    <div id="page-orders" class="page">
+        <div class="page-header">
+            <h2>📋 Histórico</h2>
+        </div>
+        <div id="orders-list"></div>
+        <div id="orders-empty" class="empty-state">
+            <div class="big-icon">📭</div>
+            <p>Você ainda não possui pedidos</p>
+        </div>
+    </div>
+
+    <!-- PÁGINA PROFILE -->
+    <div id="page-profile" class="page">
+        <div class="page-header">
+            <h2>👤 Minha Conta</h2>
+        </div>
+        <div class="card" style="text-align:center;margin-top:16px;">
+            <div class="profile-avatar" id="user-avatar">U</div>
+            <div class="profile-name" id="user-name-display">Usuário</div>
+            <div class="profile-email" id="user-email-display">usuario@email.com</div>
+        </div>
+        <div class="card">
+            <div class="profile-field">
+                <span class="label">👤 Nome</span>
+                <span class="value" id="user-name-value">Usuário</span>
+                <button class="edit-btn" onclick="editUserField('name')">Editar</button>
+            </div>
+            <div class="profile-field">
+                <span class="label">📧 E-mail</span>
+                <span class="value" id="user-email-value">usuario@email.com</span>
+                <button class="edit-btn" onclick="editUserField('email')">Editar</button>
+            </div>
+            <div class="profile-field">
+                <span class="label">📱 Telefone</span>
+                <span class="value" id="user-phone-value">(85) 99999-9999</span>
+                <button class="edit-btn" onclick="editUserField('phone')">Editar</button>
+            </div>
+            <div class="profile-field">
+                <span class="label">📍 Endereço</span>
+                <span class="value" id="user-address-value">Não cadastrado</span>
+                <button class="edit-btn" onclick="openAddressModal()">Editar</button>
+            </div>
+        </div>
+        <div class="card">
+            <button class="btn btn-danger" onclick="clearUserData()">🗑️ Resetar dados</button>
+        </div>
+    </div>
+
+    <!-- PÁGINA CHECKOUT -->
+    <div id="page-checkout" class="page">
+        <div class="page-header">
+            <h2>Checkout</h2>
+            <button class="btn btn-sm btn-secondary" onclick="switchPage('cart')">Voltar</button>
+        </div>
+        <div class="step-indicator">
+            <div class="step active" id="step-1"><div class="circle">1</div><span class="step-label">Entrega</span></div>
+            <div class="step" id="step-2"><div class="circle">2</div><span class="step-label">Pagamento</span></div>
+            <div class="step" id="step-3"><div class="circle">3</div><span class="step-label">Conclusão</span></div>
+        </div>
+        <div class="checkout-step-content">
+            <div id="checkout-step-1">
+                <div class="card">
+                    <div class="card-title">📌 Receber no seu endereço</div>
+                    <div class="card-sub" id="checkout-address">Carregando...</div>
+                    <div class="flex-between" style="margin-top:8px;">
+                        <span>Taxa de entrega</span> <span id="checkout-fee-display">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📦 Retirar na loja</div>
+                    <div class="card-sub" id="store-pickup-address">Carregando...</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🕒 Quando deseja receber?</div>
+                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                        <button class="btn btn-sm btn-secondary" onclick="setDeliveryNow()">Pedir agora (60-75min)</button>
+                        <button class="btn btn-sm btn-secondary" onclick="setDeliverySchedule()">Agendar</button>
+                    </div>
+                    <div id="schedule-info" style="margin-top:8px;font-size:14px;color:#888;"></div>
+                </div>
+                <button class="btn" onclick="nextCheckoutStep(2)">Continuar →</button>
+            </div>
+            <div id="checkout-step-2" style="display:none;">
+                <div class="card">
+                    <div class="card-title">💳 Pagamento na entrega</div>
+                    <div class="chip-group" id="payment-methods">
+                        <span class="chip" data-method="Dinheiro">💰 Dinheiro</span>
+                        <span class="chip" data-method="Pix/Transferência">📲 Pix / Transferência</span>
+                        <span class="chip" data-method="Crédito">💳 Crédito</span>
+                        <span class="chip" data-method="Débito">💳 Débito</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="flex-between"><span>Subtotal</span> <span id="checkout-subtotal">R$ 0,00</span></div>
+                    <div class="flex-between"><span>Taxa de entrega</span> <span id="checkout-delivery-fee">R$ 0,00</span></div>
+                    <div class="flex-between" style="font-weight:700;font-size:18px;border-top:1px solid #eee;padding-top:8px;">
+                        <span>Total</span> <span id="checkout-total">R$ 0,00</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="nextCheckoutStep(3)">Continuar →</button>
+            </div>
+            <div id="checkout-step-3" style="display:none;">
+                <div class="card">
+                    <div class="card-title">📋 Resumo do pedido</div>
+                    <div id="order-summary-items"></div>
+                    <div class="divider"></div>
+                    <div><strong>Endereço:</strong> <span id="order-summary-address"></span></div>
+                    <div><strong>Pagamento:</strong> <span id="order-summary-payment"></span></div>
+                    <div><strong>Entrega:</strong> <span id="order-summary-schedule"></span></div>
+                    <div class="divider"></div>
+                    <div class="flex-between"><span>Subtotal</span> <span id="order-summary-subtotal">R$ 0,00</span></div>
+                    <div class="flex-between"><span>Taxa</span> <span id="order-summary-fee">R$ 0,00</span></div>
+                    <div class="flex-between" style="font-weight:700;font-size:20px;border-top:1px solid #eee;padding-top:8px;">
+                        <span>Total</span> <span id="order-summary-total">R$ 0,00</span>
+                    </div>
+                    <button class="btn btn-success" onclick="submitOrder()" style="margin-top:16px;">✅ Enviar pedido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ENDEREÇO -->
+    <div class="modal-overlay" id="address-modal">
+        <div class="modal-box modal-address">
+            <h3>📍 Editar Endereço</h3>
+            <div class="address-form">
+                <div class="form-group full-width">
+                    <label>CEP</label>
+                    <input type="text" id="user-cep" placeholder="00000-000" maxlength="9" oninput="formatCep(this)" onblur="buscarCep(this.value, 'user')">
+                    <div class="cep-loading" id="user-cep-loading">🔍 Buscando endereço...</div>
+                </div>
+                <div class="form-group full-width">
+                    <label>Rua</label>
+                    <input type="text" id="user-street" placeholder="Rua" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Número</label>
+                    <input type="text" id="user-number" placeholder="Número">
+                </div>
+                <div class="form-group">
+                    <label>Complemento</label>
+                    <input type="text" id="user-complement" placeholder="Complemento">
+                </div>
+                <div class="form-group full-width">
+                    <label>Bairro</label>
+                    <input type="text" id="user-neighborhood" placeholder="Bairro" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Cidade</label>
+                    <input type="text" id="user-city" placeholder="Cidade" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <input type="text" id="user-state" placeholder="UF" disabled>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeAddressModal()">Cancelar</button>
+                <button class="btn" onclick="saveUserAddress()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav" id="bottom-nav">
+        <button class="active" onclick="switchPage('home')">
+            <span class="icon">🏠</span>
+            <span class="label">Início</span>
+        </button>
+        <button onclick="switchPage('cart')">
+            <span class="icon">🛒</span>
+            <span class="label">Sacola</span>
+            <span id="cart-badge-bottom" class="badge" style="display:none;">0</span>
+        </button>
+        <button onclick="switchPage('orders')">
+            <span class="icon">📋</span>
+            <span class="label">Pedidos</span>
+        </button>
+        <button onclick="switchPage('profile')">
+            <span class="icon">👤</span>
+            <span class="label">Conta</span>
+        </button>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

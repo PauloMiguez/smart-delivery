@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: smart-delivery
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: DB_HOST
+        value: gateway01.us-east-1.prod.aws.tidbcloud.com
+      - key: DB_PORT
+        value: 4000
+      - key: DB_USER
+        value: 39E87ruqfSzYfRX.root
+      - key: DB_PASSWORD
+        value: 8inwhBgD2ePqz8HH
+      - key: DB_NAME
+        value: smart_delivery
+      - key: JWT_SECRET
+        value: smart_delivery_secret_key_2024
+      - key: PORT
+        value: 3000
