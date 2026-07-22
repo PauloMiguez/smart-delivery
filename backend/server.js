@@ -481,8 +481,6 @@ app.get('/admin', (req, res) => {
 // ============================================================
 //  CONFIGURAÇÃO CLOUDINARY
 // ============================================================
-const multer = require('multer');
-
 
 // Configuração do Multer para upload de arquivos em memória
 const storage = multer.memoryStorage();
