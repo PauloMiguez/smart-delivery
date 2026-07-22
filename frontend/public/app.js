@@ -755,27 +755,36 @@ function closeAddressModal() {
 }
 
 function saveUserAddress() {
+    console.log('🔧 Salvando endereço...');
+    
     const street = document.getElementById('user-street').value.trim();
     const number = document.getElementById('user-number').value.trim();
     const complement = document.getElementById('user-complement').value.trim();
     const neighborhood = document.getElementById('user-neighborhood').value.trim();
     const city = document.getElementById('user-city').value.trim();
-    const state = document.getElementById('user-state').value.trim();
+    const stateUf = document.getElementById('user-state').value.trim();
     
-    if (!street || !number || !neighborhood || !city || !state) {
-        alert('Preencha todos os campos.');
+    if (!street || !number || !neighborhood || !city || !stateUf) {
+        alert('⚠️ Preencha todos os campos do endereço.');
         return;
     }
     
     let address = street + ', ' + number;
     if (complement) address += ' - ' + complement;
-    address += ', ' + neighborhood + ', ' + city + ' - ' + state;
+    address += ', ' + neighborhood + ', ' + city + ' - ' + stateUf;
     
-    state.user.address = address;
-    renderProfile();
-    renderHeader();
-    closeAddressModal();
-    alert('✅ Endereço atualizado!');
+    // Verificar se state e state.user existem
+    if (typeof state !== 'undefined' && state && state.user) {
+        state.user.address = address;
+        console.log('✅ Endereço atualizado:', address);
+        renderProfile();
+        renderHeader();
+        closeAddressModal();
+        alert('✅ Endereço atualizado com sucesso!');
+    } else {
+        console.error('❌ state.user não encontrado');
+        alert('❌ Erro ao salvar endereço. Tente recarregar a página.');
+    }
 }
 
 // ============================================================
