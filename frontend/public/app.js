@@ -56,14 +56,17 @@ async function loadData() {
     try {
         console.log('🔄 Carregando dados do servidor...');
 
+        // Carregar configurações primeiro
         const configRes = await apiRequest('/config');
         state.config = configRes.data || {};
         console.log('✅ Configurações carregadas');
 
+        // Carregar produtos
         const productsRes = await apiRequest('/products?active_only=true');
         state.products = productsRes.data || [];
         console.log('✅ ' + state.products.length + ' produtos carregados');
 
+        // Carregar categorias
         const categoriesRes = await apiRequest('/products/categories');
         state.categories = categoriesRes.data || [];
         console.log('✅ ' + state.categories.length + ' categorias carregadas');
@@ -92,10 +95,16 @@ async function loadData() {
             console.log('⚠️ Nenhum pedido encontrado');
         }
 
+        // AGORA sim, renderizar tudo
         renderAll();
+        
+        // Forçar a atualização do header após um pequeno delay
+        setTimeout(() => {
+            renderHeader();
+        }, 100);
+
     } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
-        // ... resto do código
     }
 }
 
