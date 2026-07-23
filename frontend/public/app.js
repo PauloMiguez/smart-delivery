@@ -193,18 +193,28 @@ async function saveEditField() {
     }
     closeEditModal();
     
+    // Armazenar o email antigo para a requisição
+    const oldEmail = state.user.email;
+    
     // Atualizar o estado
     state.user[editFieldName] = newValue;
     console.log('📝 Atualizando campo:', editFieldName, 'para:', newValue);
     
     try {
-        const url = API_URL + '/users/' + encodeURIComponent(state.user.email);
+        // Sempre usar o email ANTIGO para encontrar o usuário no banco
+        // Se o campo editado for 'email', o novo email será salvo no body
+        const url = API_URL + '/users/' + encodeURIComponent(oldEmail);
+        console.log('📤 Enviando PUT para (email antigo):', oldEmail);
+        console.log('📦 Dados:', state.user);
+        
         const response = await fetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(state.user)
         });
         const result = await response.json();
+        console.log('📥 Resposta:', result);
+        
         if (result.success) {
             console.log('✅ Usuário atualizado no banco:', result.data);
             state.user = result.data;
@@ -213,6 +223,26 @@ async function saveEditField() {
             const labelMap = { 'name': 'Nome', 'email': 'E-mail', 'phone': 'Telefone' };
             showToast(labelMap[editFieldName] + ' atualizado com sucesso!', 'success');
         } else {
+            // Se o usuário não for encontrado com o email antigo, tentar com o email atual
+            if (result.message && result.message.includes('não encontrado')) {
+                console.log('⚠️ Usuário não encontrado com email:', oldEmail);
+                console.log('🔄 Tentando com email atual:', state.user.email);
+                
+                const retryResponse = await fetch(API_URL + '/users/' + encodeURIComponent(state.user.email), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state.user)
+                });
+                const retryResult = await retryResponse.json();
+                if (retryResult.success) {
+                    state.user = retryResult.data;
+                    renderProfile();
+                    renderHeader();
+                    const labelMap = { 'name': 'Nome', 'email': 'E-mail', 'phone': 'Telefone' };
+                    showToast(labelMap[editFieldName] + ' atualizado com sucesso!', 'success');
+                    return;
+                }
+            }
             showToast('Erro ao salvar: ' + (result.message || 'Erro desconhecido'), 'error');
         }
     } catch (error) {
