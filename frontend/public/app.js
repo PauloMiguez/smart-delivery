@@ -98,10 +98,7 @@ async function loadData() {
         // AGORA sim, renderizar tudo
         renderAll();
         
-        // Forçar a atualização do header após um pequeno delay
-        setTimeout(() => {
-            renderHeader();
-        }, 100);
+        renderHeader();
 
     } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
@@ -152,7 +149,6 @@ async function editUserField(field) {
 //  RENDERIZAÇÃO
 // ============================================================
 function renderAll() {
-    renderHeader();
     renderCategories();
     renderMenu();
     renderCart();
@@ -180,7 +176,7 @@ function renderHeader() {
     const addressEl = document.getElementById('store-address');
     if (addressEl) addressEl.textContent = '📍 ' + (config.store_address || 'Endereço não configurado');
     
-    // BANNER - Atualizar imagem
+    // BANNER - Substituir pelo banner real
     const bannerContainer = document.getElementById('banner-container');
     if (bannerContainer) {
         if (config.banner_image) {
@@ -190,7 +186,7 @@ function renderHeader() {
         }
     }
     
-    // LOGO - Atualizar imagem
+    // LOGO - Substituir pela logo real
     const logoContainer = document.getElementById('logo-container');
     if (logoContainer) {
         if (config.logo_image) {
