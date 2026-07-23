@@ -729,6 +729,18 @@ body {
     flex: 1;
 }
 
+/* Esconder placeholders inicialmente */
+.banner-placeholder,
+.logo-placeholder {
+    display: none !important;
+}
+
+/* Mostrar apenas quando não houver imagem */
+.banner-container:not(:has(img)) .banner-placeholder,
+.logo-container:not(:has(img)) .logo-placeholder {
+    display: flex !important;
+}
+
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 480px) {
     #app { max-width: 100%; }
