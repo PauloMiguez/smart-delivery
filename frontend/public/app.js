@@ -109,9 +109,11 @@ function renderAll() {
 function renderHeader() {
     const config = state.config;
 
+    // Nome da loja
     const storeName = document.getElementById('store-name');
     if (storeName) storeName.textContent = config.store_name || 'Smart Delivery';
     
+    // Status
     const isOpen = config.is_open === 'true' || config.is_open === true;
     const statusEl = document.getElementById('store-status');
     if (statusEl) statusEl.textContent = isOpen ? '🟢 Aberto' : '🔴 Fechado';
@@ -119,9 +121,31 @@ function renderHeader() {
     const hoursEl = document.getElementById('store-hours');
     if (hoursEl) hoursEl.textContent = ' • ' + (config.open_time || '09:00') + ' – ' + (config.close_time || '22:00');
     
+    // Endereço
     const addressEl = document.getElementById('store-address');
     if (addressEl) addressEl.textContent = '📍 ' + (config.store_address || 'Endereço não configurado');
     
+    // BANNER - Atualizar imagem
+    const bannerContainer = document.getElementById('banner-container');
+    if (bannerContainer) {
+        if (config.banner_image) {
+            bannerContainer.innerHTML = `<img src="${config.banner_image}" alt="Banner" style="width:100%;height:100%;object-fit:cover;">`;
+        } else {
+            bannerContainer.innerHTML = `<div class="banner-placeholder">🍽️ ${config.store_name || 'Smart Delivery'}</div>`;
+        }
+    }
+    
+    // LOGO - Atualizar imagem
+    const logoContainer = document.getElementById('logo-container');
+    if (logoContainer) {
+        if (config.logo_image) {
+            logoContainer.innerHTML = `<img src="${config.logo_image}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        } else {
+            logoContainer.innerHTML = `<div class="logo-placeholder">${config.store_name ? config.store_name.substring(0, 2).toUpperCase() : 'SD'}</div>`;
+        }
+    }
+    
+    // Checkout
     const pickupEl = document.getElementById('store-pickup-address');
     if (pickupEl) pickupEl.textContent = config.store_address || 'Endereço não configurado';
     
