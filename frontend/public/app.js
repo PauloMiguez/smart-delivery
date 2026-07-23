@@ -95,14 +95,71 @@ async function loadData() {
             console.log('⚠️ Nenhum pedido encontrado');
         }
 
-        // AGORA sim, renderizar tudo
+        // Renderizar tudo
         renderAll();
         
+        // Chamar renderHeader APÓS os dados serem carregados
         renderHeader();
+
+        // ==== MOSTRAR A PÁGINA ====
+        // Aguardar as imagens carregarem
+        await waitForImages();
+        
+        // Adicionar classe 'loaded' para mostrar a página
+        document.getElementById('app').classList.add('loaded');
+        
+        // Esconder o loader
+        const loader = document.getElementById('loader');
+        if (loader) {
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500);
+        }
 
     } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
+        // Mesmo com erro, mostrar a página
+        document.getElementById('app').classList.add('loaded');
+        const loader = document.getElementById('loader');
+        if (loader) {
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500);
+        }
     }
+}
+
+// Função para aguardar as imagens carregarem
+function waitForImages() {
+    return new Promise((resolve) => {
+        const images = document.querySelectorAll('img');
+        if (images.length === 0) {
+            resolve();
+            return;
+        }
+        
+        let loaded = 0;
+        const total = images.length;
+        
+        images.forEach(img => {
+            if (img.complete) {
+                loaded++;
+                if (loaded === total) resolve();
+            } else {
+                img.addEventListener('load', () => {
+                    loaded++;
+                    if (loaded === total) resolve();
+                });
+                img.addEventListener('error', () => {
+                    loaded++;
+                    if (loaded === total) resolve();
+                });
+            }
+        });
+        
+        // Timeout de segurança (5 segundos)
+        setTimeout(resolve, 5000);
+    });
 }
 
 async function editUserField(field) {

@@ -5,21 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Smart Delivery</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Loader - aparece enquanto a página carrega */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        #loader .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0ede8;
+            border-top: 4px solid #e67e22;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        #loader p {
+            margin-top: 16px;
+            color: #888;
+            font-size: 14px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Conteúdo principal - invisível até carregar */
+        #app {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #app.loaded {
+            opacity: 1;
+        }
+        
+        /* Esconder placeholders inicialmente */
+        .banner-placeholder,
+        .logo-placeholder {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
+
+<!-- LOADER -->
+<div id="loader">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+</div>
+
+<!-- CONTEÚDO PRINCIPAL -->
 <div id="app">
 
-<!-- BANNER -->
-<div class="banner-container" id="banner-container">
-    <div class="banner-placeholder" id="banner-placeholder" style="display:none;"></div>
-</div>
-
-<!-- LOGO -->
-<div class="logo-wrapper">
-    <div class="logo-container" id="logo-container">
-        <div class="logo-placeholder" id="logo-placeholder" style="display:none;"></div>
+    <!-- BANNER -->
+    <div class="banner-container" id="banner-container">
+        <div class="banner-placeholder" id="banner-placeholder"></div>
     </div>
-</div>
+
+    <!-- LOGO -->
+    <div class="logo-wrapper">
+        <div class="logo-container" id="logo-container">
+            <div class="logo-placeholder" id="logo-placeholder"></div>
+        </div>
+    </div>
 
     <!-- NOME E STATUS -->
     <div class="store-header">
@@ -43,7 +100,7 @@
         <div class="products-container" id="products-container"></div>
     </div>
 
-    <!-- PÁGINA CARRINHO -->
+    <!-- PÁGINA CART -->
     <div id="page-cart" class="page">
         <div class="page-header">
             <h2>🛒 Sacola</h2>
@@ -70,84 +127,7 @@
         </div>
     </div>
 
-    <!-- CHECKOUT -->
-    <div id="page-checkout" class="page">
-        <div class="page-header">
-            <h2>Checkout</h2>
-            <button class="btn btn-sm btn-secondary" onclick="switchPage('cart')">Voltar</button>
-        </div>
-        <div class="step-indicator">
-            <div class="step active" id="step-1"><div class="circle">1</div><span class="step-label">Entrega</span></div>
-            <div class="step" id="step-2"><div class="circle">2</div><span class="step-label">Pagamento</span></div>
-            <div class="step" id="step-3"><div class="circle">3</div><span class="step-label">Conclusão</span></div>
-        </div>
-        <div class="checkout-step-content">
-            <div id="checkout-step-1">
-                <div class="card">
-                    <div class="card-title">📌 Receber no seu endereço</div>
-                    <div class="card-sub" id="checkout-address">Carregando...</div>
-                    <div class="flex-between" style="margin-top:8px;">
-                        <span>Taxa de entrega</span> <span id="checkout-fee-display">R$ 0,00</span>
-                    </div>
-                    <div class="flex-between"><span>Tempo de espera</span> <span>Entrega agendada</span></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">📦 Retirar na loja</div>
-                    <div class="card-sub" id="store-pickup-address">Carregando...</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">🕒 Quando deseja receber?</div>
-                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-                        <button class="btn btn-sm btn-secondary" onclick="setDeliveryNow()">Pedir agora (60-75min)</button>
-                        <button class="btn btn-sm btn-secondary" onclick="setDeliverySchedule()">Agendar</button>
-                    </div>
-                    <div id="schedule-info" style="margin-top:8px;font-size:14px;color:#888;"></div>
-                </div>
-                <button class="btn" onclick="nextCheckoutStep(2)">Continuar →</button>
-            </div>
-            <div id="checkout-step-2" style="display:none;">
-                <div class="card">
-                    <div class="card-title">💳 Pagamento na entrega</div>
-                    <div class="chip-group" id="payment-methods">
-                        <span class="chip" data-method="Dinheiro">💰 Dinheiro</span>
-                        <span class="chip" data-method="Pix/Transferência">📲 Pix / Transferência</span>
-                        <span class="chip" data-method="Crédito">💳 Crédito</span>
-                        <span class="chip" data-method="Débito">💳 Débito</span>
-                    </div>
-                    <div style="margin-top:8px;">
-                        <input type="text" id="cpf-input" placeholder="CPF/CNPJ (opcional)" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;">
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="flex-between"><span>Subtotal</span> <span id="checkout-subtotal">R$ 0,00</span></div>
-                    <div class="flex-between"><span>Taxa de entrega</span> <span id="checkout-delivery-fee">R$ 0,00</span></div>
-                    <div class="flex-between" style="font-weight:700;font-size:18px;border-top:1px solid #eee;padding-top:8px;">
-                        <span>Total</span> <span id="checkout-total">R$ 0,00</span>
-                    </div>
-                </div>
-                <button class="btn" onclick="nextCheckoutStep(3)">Continuar →</button>
-            </div>
-            <div id="checkout-step-3" style="display:none;">
-                <div class="card">
-                    <div class="card-title">📋 Resumo do pedido</div>
-                    <div id="order-summary-items"></div>
-                    <div class="divider"></div>
-                    <div><strong>Endereço de entrega:</strong> <span id="order-summary-address"></span></div>
-                    <div><strong>Forma de pagamento:</strong> <span id="order-summary-payment"></span></div>
-                    <div><strong>Entrega:</strong> <span id="order-summary-schedule"></span></div>
-                    <div class="divider"></div>
-                    <div class="flex-between"><span>Subtotal</span> <span id="order-summary-subtotal">R$ 0,00</span></div>
-                    <div class="flex-between"><span>Taxa de entrega</span> <span id="order-summary-fee">R$ 0,00</span></div>
-                    <div class="flex-between" style="font-weight:700;font-size:20px;border-top:1px solid #eee;padding-top:8px;">
-                        <span>Total</span> <span id="order-summary-total">R$ 0,00</span>
-                    </div>
-                    <button class="btn btn-success" onclick="submitOrder()" style="margin-top:16px;">✅ Enviar pedido</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HISTÓRICO -->
+    <!-- PÁGINA ORDERS -->
     <div id="page-orders" class="page">
         <div class="page-header">
             <h2>📋 Histórico</h2>
@@ -159,7 +139,7 @@
         </div>
     </div>
 
-    <!-- CONTA -->
+    <!-- PÁGINA PROFILE -->
     <div id="page-profile" class="page">
         <div class="page-header">
             <h2>👤 Minha Conta</h2>
@@ -187,12 +167,85 @@
             </div>
             <div class="profile-field">
                 <span class="label">📍 Endereço</span>
-                <span class="value" id="user-address-value">Carregando...</span>
+                <span class="value" id="user-address-value">Não cadastrado</span>
                 <button class="edit-btn" onclick="openAddressModal()">Editar</button>
             </div>
         </div>
         <div class="card">
             <button class="btn btn-danger" onclick="clearUserData()">🗑️ Resetar dados</button>
+        </div>
+    </div>
+
+    <!-- PÁGINA CHECKOUT -->
+    <div id="page-checkout" class="page">
+        <div class="page-header">
+            <h2>Checkout</h2>
+            <button class="btn btn-sm btn-secondary" onclick="switchPage('cart')">Voltar</button>
+        </div>
+        <div class="step-indicator">
+            <div class="step active" id="step-1"><div class="circle">1</div><span class="step-label">Entrega</span></div>
+            <div class="step" id="step-2"><div class="circle">2</div><span class="step-label">Pagamento</span></div>
+            <div class="step" id="step-3"><div class="circle">3</div><span class="step-label">Conclusão</span></div>
+        </div>
+        <div class="checkout-step-content">
+            <div id="checkout-step-1">
+                <div class="card">
+                    <div class="card-title">📌 Receber no seu endereço</div>
+                    <div class="card-sub" id="checkout-address">Carregando...</div>
+                    <div class="flex-between" style="margin-top:8px;">
+                        <span>Taxa de entrega</span> <span id="checkout-fee-display">R$ 0,00</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📦 Retirar na loja</div>
+                    <div class="card-sub" id="store-pickup-address">Carregando...</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🕒 Quando deseja receber?</div>
+                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                        <button class="btn btn-sm btn-secondary" onclick="setDeliveryNow()">Pedir agora (60-75min)</button>
+                        <button class="btn btn-sm btn-secondary" onclick="setDeliverySchedule()">Agendar</button>
+                    </div>
+                    <div id="schedule-info" style="margin-top:8px;font-size:14px;color:#888;"></div>
+                </div>
+                <button class="btn" onclick="nextCheckoutStep(2)">Continuar →</button>
+            </div>
+            <div id="checkout-step-2" style="display:none;">
+                <div class="card">
+                    <div class="card-title">💳 Pagamento na entrega</div>
+                    <div class="chip-group" id="payment-methods">
+                        <span class="chip" data-method="Dinheiro">💰 Dinheiro</span>
+                        <span class="chip" data-method="Pix/Transferência">📲 Pix / Transferência</span>
+                        <span class="chip" data-method="Crédito">💳 Crédito</span>
+                        <span class="chip" data-method="Débito">💳 Débito</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="flex-between"><span>Subtotal</span> <span id="checkout-subtotal">R$ 0,00</span></div>
+                    <div class="flex-between"><span>Taxa de entrega</span> <span id="checkout-delivery-fee">R$ 0,00</span></div>
+                    <div class="flex-between" style="font-weight:700;font-size:18px;border-top:1px solid #eee;padding-top:8px;">
+                        <span>Total</span> <span id="checkout-total">R$ 0,00</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="nextCheckoutStep(3)">Continuar →</button>
+            </div>
+            <div id="checkout-step-3" style="display:none;">
+                <div class="card">
+                    <div class="card-title">📋 Resumo do pedido</div>
+                    <div id="order-summary-items"></div>
+                    <div class="divider"></div>
+                    <div><strong>Endereço:</strong> <span id="order-summary-address"></span></div>
+                    <div><strong>Pagamento:</strong> <span id="order-summary-payment"></span></div>
+                    <div><strong>Entrega:</strong> <span id="order-summary-schedule"></span></div>
+                    <div class="divider"></div>
+                    <div class="flex-between"><span>Subtotal</span> <span id="order-summary-subtotal">R$ 0,00</span></div>
+                    <div class="flex-between"><span>Taxa</span> <span id="order-summary-fee">R$ 0,00</span></div>
+                    <div class="flex-between" style="font-weight:700;font-size:20px;border-top:1px solid #eee;padding-top:8px;">
+                        <span>Total</span> <span id="order-summary-total">R$ 0,00</span>
+                    </div>
+                    <button class="btn btn-success" onclick="submitOrder()" style="margin-top:16px;">✅ Enviar pedido</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -233,7 +286,7 @@
             </div>
             <div class="form-actions">
                 <button class="btn btn-secondary" onclick="closeAddressModal()">Cancelar</button>
-                <button class="btn" onclick="saveUserAddress()">Salvar Endereço</button>
+                <button class="btn" onclick="saveUserAddress()">Salvar</button>
             </div>
         </div>
     </div>
