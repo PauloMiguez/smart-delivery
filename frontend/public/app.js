@@ -109,17 +109,21 @@ async function editUserField(field) {
     const newValue = prompt('Digite seu ' + labels[field] + ':', currentValue);
     if (newValue !== null && newValue.trim() !== '') {
         state.user[field] = newValue.trim();
+        console.log('📝 Atualizando campo:', field, 'para:', state.user[field]);
         try {
             const result = await apiRequest('/users/' + encodeURIComponent(state.user.email), {
                 method: 'PUT',
                 body: JSON.stringify(state.user)
             });
             if (result.success) {
+                console.log('✅ Usuário atualizado no banco:', result.data);
+                state.user = result.data;
                 renderProfile();
                 renderHeader();
                 alert('✅ ' + labels[field] + ' atualizado com sucesso!');
             }
         } catch (error) {
+            console.error('❌ Erro ao salvar:', error);
             alert('❌ Erro ao salvar: ' + error.message);
         }
     }
