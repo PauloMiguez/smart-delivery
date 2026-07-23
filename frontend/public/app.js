@@ -188,7 +188,7 @@ function closeEditModal() {
 async function saveEditField() {
     const newValue = document.getElementById('edit-modal-input').value.trim();
     if (newValue === '') {
-        alert('O campo não pode ficar vazio.');
+        showToast('O campo não pode ficar vazio.', 'warning');
         return;
     }
     closeEditModal();
@@ -210,13 +210,14 @@ async function saveEditField() {
             state.user = result.data;
             renderProfile();
             renderHeader();
-            alert('✅ ' + (editFieldName === 'name' ? 'Nome' : editFieldName === 'email' ? 'E-mail' : 'Telefone') + ' atualizado com sucesso!');
+            const labelMap = { 'name': 'Nome', 'email': 'E-mail', 'phone': 'Telefone' };
+            showToast(labelMap[editFieldName] + ' atualizado com sucesso!', 'success');
         } else {
-            alert('❌ Erro ao salvar: ' + (result.message || 'Erro desconhecido'));
+            showToast('Erro ao salvar: ' + (result.message || 'Erro desconhecido'), 'error');
         }
     } catch (error) {
         console.error('❌ Erro ao salvar:', error);
-        alert('❌ Erro ao salvar: ' + error.message);
+        showToast('Erro ao salvar: ' + error.message, 'error');
     }
 }
 
@@ -551,13 +552,16 @@ function switchPage(pageId) {
 // ============================================================
 function applyCoupon() {
     const code = document.getElementById('coupon-input').value.trim();
-    if (!code) { alert('Digite um código de cupom.'); return; }
+    if (!code) {
+        showToast('Digite um código de cupom.', 'warning');
+        return;
+    }
     if (code.toUpperCase() === 'FRANGO10') {
         couponApplied = { code: 'FRANGO10', type: 'percent', value: 10 };
-        alert('Cupom aplicado! 10% de desconto.');
+        showToast('Cupom aplicado! 10% de desconto.', 'success');
     } else {
         couponApplied = null;
-        alert('Cupom inválido.');
+        showToast('Cupom inválido.', 'error');
     }
     renderCart();
     updateCheckoutTotals();
@@ -567,7 +571,10 @@ function applyCoupon() {
 //  CHECKOUT
 // ============================================================
 function goToCheckout() {
-    if (state.cart.length === 0) { alert('Adicione itens à sacola primeiro.'); return; }
+    if (state.cart.length === 0) {
+        showToast('Adicione itens à sacola primeiro.', 'warning');
+        return;
+    }
     checkoutStep = 1;
     showCheckoutStep(1);
     updateCheckoutTotals();
@@ -601,9 +608,9 @@ function showCheckoutStep(step) {
 function nextCheckoutStep(nextStep) {
     if (checkoutStep === 2) {
         const selected = document.querySelector('.chip-group .chip.selected');
-        if (!selected) { 
-            alert('Selecione uma forma de pagamento.'); 
-            return; 
+        if (!selected) {
+            showToast('Selecione uma forma de pagamento.', 'warning');
+            return;
         }
         selectedPayment = selected.dataset.method;
     }
@@ -687,7 +694,10 @@ function buildOrderSummary() {
 //  ENVIAR PEDIDO
 // ============================================================
 async function submitOrder() {
-    if (state.cart.length === 0) return alert('Sacola vazia!');
+    if (state.cart.length === 0) {
+        showToast('Sacola vazia!', 'warning');
+        return;
+    }
     
     const subtotal = state.cart.reduce((acc, i) => acc + i.price * i.qty, 0);
     const fee = parseFloat(state.config.delivery_fee) || 0;
@@ -763,11 +773,11 @@ async function submitOrder() {
         couponApplied = null;
         renderAll();
         switchPage('home');
-        alert('✅ Pedido enviado com sucesso! O restaurante receberá a notificação.');
+        showToast('Pedido enviado com sucesso! O restaurante receberá a notificação.', 'success');
 
     } catch (error) {
         console.error('❌ Erro ao enviar pedido:', error);
-        alert('❌ Erro ao enviar pedido: ' + error.message);
+        showToast('Erro ao enviar pedido: ' + error.message, 'error');
     }
 }
 
@@ -848,7 +858,7 @@ function clearUserData() {
         };
         renderProfile();
         renderHeader();
-        alert('✅ Dados resetados com sucesso.');
+        showToast('Dados resetados com sucesso.', 'success');
     }
 }
 
@@ -871,7 +881,7 @@ function buscarCep(cep, prefix) {
         .then(response => response.json())
         .then(data => {
             if (data.erro) {
-                alert('CEP não encontrado.');
+                showToast('CEP não encontrado.', 'warning');
                 return;
             }
             const streetEl = document.getElementById(prefix + '-street');
@@ -886,7 +896,7 @@ function buscarCep(cep, prefix) {
             if (stateEl) stateEl.value = data.uf || '';
             if (numberEl) numberEl.focus();
         })
-        .catch(() => alert('Erro ao buscar CEP.'));
+        .catch(() => showToast('Erro ao buscar CEP.', 'error'));
 }
 
 function openAddressModal() {
@@ -910,7 +920,7 @@ async function saveUserAddress() {
     const stateUf = document.getElementById('user-state').value.trim();
     
     if (!street || !number || !neighborhood || !city || !stateUf) {
-        alert('⚠️ Preencha todos os campos do endereço.');
+        showToast('Preencha todos os campos do endereço.', 'warning');
         return;
     }
     
@@ -930,12 +940,44 @@ async function saveUserAddress() {
             renderProfile();
             renderHeader();
             closeAddressModal();
-            alert('✅ Endereço atualizado com sucesso!');
+            showToast('Endereço atualizado com sucesso!', 'success');
         }
     } catch (error) {
         console.error('❌ Erro ao salvar endereço:', error);
-        alert('❌ Erro ao salvar endereço: ' + error.message);
+        showToast('Erro ao salvar endereço: ' + error.message, 'error');
     }
+}
+
+// ============================================================
+//  TOAST / NOTIFICAÇÃO PERSONALIZADA
+// ============================================================
+function showToast(message, type = 'success', duration = 3500) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || '📢'}</span>
+        <span>${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Remover automaticamente após o tempo
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => {
+            if (toast.parentElement) toast.remove();
+        }, 300);
+    }, duration);
 }
 
 // ============================================================
@@ -984,5 +1026,6 @@ window.buscarCep = buscarCep;
 window.scrollToCategory = scrollToCategory;
 window.changeQty = changeQty;
 window.removeFromCart = removeFromCart;
+window.showToast = showToast;
 
 console.log('✅ Todas as funções estão disponíveis globalmente');
