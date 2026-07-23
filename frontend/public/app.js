@@ -111,16 +111,26 @@ async function editUserField(field) {
         state.user[field] = newValue.trim();
         console.log('📝 Atualizando campo:', field, 'para:', state.user[field]);
         try {
-            const result = await apiRequest('/users/' + encodeURIComponent(state.user.email), {
+            const url = API_URL + '/users/' + encodeURIComponent(state.user.email);
+            console.log('📤 Enviando PUT para:', url);
+            console.log('📦 Dados:', state.user);
+            
+            const response = await fetch(url, {
                 method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(state.user)
             });
+            const result = await response.json();
+            console.log('📥 Resposta:', result);
+            
             if (result.success) {
                 console.log('✅ Usuário atualizado no banco:', result.data);
                 state.user = result.data;
                 renderProfile();
                 renderHeader();
                 alert('✅ ' + labels[field] + ' atualizado com sucesso!');
+            } else {
+                alert('❌ Erro ao salvar: ' + (result.message || 'Erro desconhecido'));
             }
         } catch (error) {
             console.error('❌ Erro ao salvar:', error);
@@ -735,22 +745,6 @@ function renderProfile() {
     
     const addrVal = document.getElementById('user-address-value');
     if (addrVal) addrVal.textContent = user.address || 'Não cadastrado';
-}
-
-function editUserField(field) {
-    const labels = {
-        'name': 'Nome completo',
-        'email': 'E-mail',
-        'phone': 'Telefone'
-    };
-    const currentValue = state.user[field];
-    const newValue = prompt('Digite seu ' + labels[field] + ':', currentValue);
-    if (newValue !== null && newValue.trim() !== '') {
-        state.user[field] = newValue.trim();
-        renderProfile();
-        renderHeader();
-        alert('✅ ' + labels[field] + ' atualizado com sucesso!');
-    }
 }
 
 function clearUserData() {
