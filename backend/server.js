@@ -534,6 +534,75 @@ app.delete('/api/upload/:public_id', async (req, res) => {
 });
 
 // ============================================================
+//  ROTAS - USUÁRIOS
+// ============================================================
+
+// Buscar ou criar usuário
+app.post('/api/users', async (req, res) => {
+    try {
+        const { name, email, phone, address } = req.body;
+        
+        // Verificar se o usuário já existe
+        const [existing] = await promisePool.query('SELECT * FROM users WHERE email = ?', [email]);
+        
+        let user;
+        if (existing.length > 0) {
+            // Atualizar usuário existente
+            await promisePool.query(
+                'UPDATE users SET name = ?, phone = ?, address = ? WHERE email = ?',
+                [name, phone, address, email]
+            );
+            const [rows] = await promisePool.query('SELECT * FROM users WHERE email = ?', [email]);
+            user = rows[0];
+        } else {
+            // Criar novo usuário
+            const [result] = await promisePool.query(
+                'INSERT INTO users (name, email, phone, address) VALUES (?, ?, ?, ?)',
+                [name, email, phone, address]
+            );
+            const [rows] = await promisePool.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
+            user = rows[0];
+        }
+        
+        res.json({ success: true, data: user });
+    } catch (error) {
+        console.error('Erro ao salvar usuário:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Buscar usuário por email
+app.get('/api/users/:email', async (req, res) => {
+    try {
+        const [rows] = await promisePool.query('SELECT * FROM users WHERE email = ?', [req.params.email]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+        }
+        res.json({ success: true, data: rows[0] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Atualizar usuário
+app.put('/api/users/:email', async (req, res) => {
+    try {
+        const { name, phone, address } = req.body;
+        const [result] = await promisePool.query(
+            'UPDATE users SET name = ?, phone = ?, address = ? WHERE email = ?',
+            [name, phone, address, req.params.email]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+        }
+        const [rows] = await promisePool.query('SELECT * FROM users WHERE email = ?', [req.params.email]);
+        res.json({ success: true, data: rows[0] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================================
 //  INICIAR SERVIDOR
 // ============================================================
 async function startServer() {
