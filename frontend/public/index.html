@@ -312,6 +312,25 @@
         </button>
     </div>
 
+</div> <!-- FIM DA div#app -->
+
+<!-- ============================================================ -->
+<!-- MODAIS (FORA DA div#app PARA EVITAR CONFLITOS) -->
+<!-- ============================================================ -->
+
+<!-- MODAL DE EDIÇÃO DE CAMPO -->
+<div class="modal-overlay" id="edit-modal">
+    <div class="modal-box">
+        <h3 id="edit-modal-title">Editar</h3>
+        <div class="form-group">
+            <label id="edit-modal-label">Valor</label>
+            <input type="text" id="edit-modal-input" placeholder="Digite o novo valor">
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
+            <button class="btn" id="edit-modal-save-btn" onclick="saveEditField()">Salvar</button>
+        </div>
+    </div>
 </div>
 
 <script src="app.js"></script>

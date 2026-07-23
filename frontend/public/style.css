@@ -741,6 +741,42 @@ body {
     display: flex !important;
 }
 
+/* Modal de edição de campo */
+#edit-modal .modal-box {
+    max-width: 400px;
+}
+#edit-modal .form-group {
+    margin-bottom: 16px;
+}
+#edit-modal .form-group label {
+    display: block;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #555;
+}
+#edit-modal .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+#edit-modal .form-group input:focus {
+    outline: none;
+    border-color: #e67e22;
+    box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+}
+#edit-modal .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+#edit-modal .form-actions .btn {
+    flex: 1;
+}
+
 /* ===== RESPONSIVIDADE ===== */
 @media (max-width: 480px) {
     #app { max-width: 100%; }

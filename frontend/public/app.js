@@ -162,44 +162,73 @@ function waitForImages() {
     });
 }
 
+// ============================================================
+//  FUNÇÕES DE EDIÇÃO COM MODAL PERSONALIZADO
+// ============================================================
+let editFieldCallback = null;
+let editFieldName = '';
+
+// Função que abre o modal de edição
+function openEditModal(field, currentValue, label) {
+    editFieldName = field;
+    document.getElementById('edit-modal-title').textContent = 'Editar ' + label;
+    document.getElementById('edit-modal-label').textContent = label;
+    document.getElementById('edit-modal-input').value = currentValue;
+    document.getElementById('edit-modal-input').focus();
+    document.getElementById('edit-modal').style.display = 'flex';
+}
+
+// Função que fecha o modal
+function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+    editFieldCallback = null;
+}
+
+// Função que salva a edição
+async function saveEditField() {
+    const newValue = document.getElementById('edit-modal-input').value.trim();
+    if (newValue === '') {
+        alert('O campo não pode ficar vazio.');
+        return;
+    }
+    closeEditModal();
+    
+    // Atualizar o estado
+    state.user[editFieldName] = newValue;
+    console.log('📝 Atualizando campo:', editFieldName, 'para:', newValue);
+    
+    try {
+        const url = API_URL + '/users/' + encodeURIComponent(state.user.email);
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(state.user)
+        });
+        const result = await response.json();
+        if (result.success) {
+            console.log('✅ Usuário atualizado no banco:', result.data);
+            state.user = result.data;
+            renderProfile();
+            renderHeader();
+            alert('✅ ' + (editFieldName === 'name' ? 'Nome' : editFieldName === 'email' ? 'E-mail' : 'Telefone') + ' atualizado com sucesso!');
+        } else {
+            alert('❌ Erro ao salvar: ' + (result.message || 'Erro desconhecido'));
+        }
+    } catch (error) {
+        console.error('❌ Erro ao salvar:', error);
+        alert('❌ Erro ao salvar: ' + error.message);
+    }
+}
+
+// Função principal que será chamada pelo botão "Editar"
 async function editUserField(field) {
     const labels = {
         'name': 'Nome completo',
         'email': 'E-mail',
         'phone': 'Telefone'
     };
-    const currentValue = state.user[field];
-    const newValue = prompt('Digite seu ' + labels[field] + ':', currentValue);
-    if (newValue !== null && newValue.trim() !== '') {
-        state.user[field] = newValue.trim();
-        console.log('📝 Atualizando campo:', field, 'para:', state.user[field]);
-        try {
-            const url = API_URL + '/users/' + encodeURIComponent(state.user.email);
-            console.log('📤 Enviando PUT para:', url);
-            console.log('📦 Dados:', state.user);
-            
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(state.user)
-            });
-            const result = await response.json();
-            console.log('📥 Resposta:', result);
-            
-            if (result.success) {
-                console.log('✅ Usuário atualizado no banco:', result.data);
-                state.user = result.data;
-                renderProfile();
-                renderHeader();
-                alert('✅ ' + labels[field] + ' atualizado com sucesso!');
-            } else {
-                alert('❌ Erro ao salvar: ' + (result.message || 'Erro desconhecido'));
-            }
-        } catch (error) {
-            console.error('❌ Erro ao salvar:', error);
-            alert('❌ Erro ao salvar: ' + error.message);
-        }
-    }
+    const currentValue = state.user[field] || '';
+    openEditModal(field, currentValue, labels[field]);
 }
 
 // ============================================================
@@ -943,6 +972,9 @@ window.setDeliveryNow = setDeliveryNow;
 window.setDeliverySchedule = setDeliverySchedule;
 window.submitOrder = submitOrder;
 window.editUserField = editUserField;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.saveEditField = saveEditField;
 window.clearUserData = clearUserData;
 window.openAddressModal = openAddressModal;
 window.closeAddressModal = closeAddressModal;
