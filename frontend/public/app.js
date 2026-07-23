@@ -68,6 +68,22 @@ async function loadData() {
         state.categories = categoriesRes.data || [];
         console.log('✅ ' + state.categories.length + ' categorias carregadas');
 
+        // CARREGAR USUÁRIO DO BANCO
+        try {
+            const userEmail = state.user.email || 'usuario@email.com';
+            const userRes = await apiRequest('/users/' + encodeURIComponent(userEmail));
+            if (userRes.success && userRes.data) {
+                state.user = userRes.data;
+                console.log('✅ Usuário carregado do banco');
+            }
+        } catch (e) {
+            console.log('⚠️ Usuário não encontrado, criando...');
+            await apiRequest('/users', {
+                method: 'POST',
+                body: JSON.stringify(state.user)
+            });
+        }
+
         try {
             const ordersRes = await apiRequest('/orders');
             state.orders = ordersRes.data || [];
@@ -79,16 +95,32 @@ async function loadData() {
         renderAll();
     } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
-        const container = document.getElementById('products-container');
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="big-icon">⚠️</div>
-                    <p>Erro ao carregar dados.</p>
-                    <p style="font-size:12px;color:#aaa;">${error.message}</p>
-                    <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:#e67e22;color:#fff;border:none;border-radius:8px;cursor:pointer;">Tentar novamente</button>
-                </div>
-            `;
+        // ... resto do código
+    }
+}
+
+async function editUserField(field) {
+    const labels = {
+        'name': 'Nome completo',
+        'email': 'E-mail',
+        'phone': 'Telefone'
+    };
+    const currentValue = state.user[field];
+    const newValue = prompt('Digite seu ' + labels[field] + ':', currentValue);
+    if (newValue !== null && newValue.trim() !== '') {
+        state.user[field] = newValue.trim();
+        try {
+            const result = await apiRequest('/users/' + encodeURIComponent(state.user.email), {
+                method: 'PUT',
+                body: JSON.stringify(state.user)
+            });
+            if (result.success) {
+                renderProfile();
+                renderHeader();
+                alert('✅ ' + labels[field] + ' atualizado com sucesso!');
+            }
+        } catch (error) {
+            alert('❌ Erro ao salvar: ' + error.message);
         }
     }
 }
@@ -778,7 +810,7 @@ function closeAddressModal() {
     if (modal) modal.style.display = 'none';
 }
 
-function saveUserAddress() {
+async function saveUserAddress() {
     console.log('🔧 Salvando endereço...');
     
     const street = document.getElementById('user-street').value.trim();
@@ -797,17 +829,23 @@ function saveUserAddress() {
     if (complement) address += ' - ' + complement;
     address += ', ' + neighborhood + ', ' + city + ' - ' + stateUf;
     
-    // Verificar se state e state.user existem
-    if (typeof state !== 'undefined' && state && state.user) {
-        state.user.address = address;
-        console.log('✅ Endereço atualizado:', address);
-        renderProfile();
-        renderHeader();
-        closeAddressModal();
-        alert('✅ Endereço atualizado com sucesso!');
-    } else {
-        console.error('❌ state.user não encontrado');
-        alert('❌ Erro ao salvar endereço. Tente recarregar a página.');
+    state.user.address = address;
+    
+    try {
+        const result = await apiRequest('/users/' + encodeURIComponent(state.user.email), {
+            method: 'PUT',
+            body: JSON.stringify(state.user)
+        });
+        if (result.success) {
+            console.log('✅ Endereço atualizado:', address);
+            renderProfile();
+            renderHeader();
+            closeAddressModal();
+            alert('✅ Endereço atualizado com sucesso!');
+        }
+    } catch (error) {
+        console.error('❌ Erro ao salvar endereço:', error);
+        alert('❌ Erro ao salvar endereço: ' + error.message);
     }
 }
 
